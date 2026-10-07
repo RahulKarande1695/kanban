@@ -4,18 +4,30 @@ import { selectCardById } from '../boardSelectors'
 import Button from '../../../shared/ui/atoms/Button'
 import EditableText from '../../../shared/ui/molecules/EditableText'
 
-// Card fakt cardId gheto, ani data swata store madhun vachto.
-// Mhanun ek card badalla tar fakt tyach card cha component re-render hoto.
-export default function Card({ cardId, columnId }) {
+export default function Card({ cardId, columnId, isDragging, showDropBefore, onDragStart, onDragEnd }) {
   const dispatch = useDispatch()
   const card = useSelector((state) => selectCardById(state, cardId))
 
-  // Parent delete zalyavar child kahi veli stale props sobat ekda render hoto,
-  // tevha card undefined aaso shakto. Mhanun guard.
   if (!card) return null
 
+  const handleDragStart = (e) => {
+    e.dataTransfer.effectAllowed = 'move'
+    // Firefox madhe setData kelyashivay drag suru hot nahi, mhanun he compulsory.
+    e.dataTransfer.setData('text/plain', cardId)
+    onDragStart({ cardId, columnId })
+  }
+
   return (
-    <li className="card">
+    <li
+      className={[
+        'card',
+        isDragging && 'card--dragging', // original card dhusar disto
+        showDropBefore && 'card--drop-before', // ya card chya var indicator line
+      ].filter(Boolean).join(' ')}
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={onDragEnd}
+    >
       <div className="card__header">
         <EditableText
           className="card__title"
